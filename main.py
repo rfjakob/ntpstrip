@@ -92,6 +92,10 @@ def render_time(np, hour, minute, seconds):
 
 
 def main():
+    # Onboard LED shows that main.py has started executing
+    led = machine.Pin("LED", machine.Pin.OUT)
+    led.on()
+
     np = neopixel.NeoPixel(machine.Pin(config.GPIOPIN), config.PIXELS)
     status_pixel(np, (10, 0, 0))
 
