@@ -11,6 +11,8 @@ import localPTZtime
 # Local config
 import config
 
+STRESS_TEST = True
+
 
 def wifi_pretty_status(status):
     """
@@ -65,7 +67,7 @@ def wifi_connect(wlan):
 
 def ntp_sync():
     retry = 0
-    maxretry = 5
+    maxretry = 3
 
     while retry <= maxretry:
         try:
@@ -133,9 +135,19 @@ def main():
             last_ntp_sync = time.time()
             break
 
+    loop_count = 0
+    loop_sleep = 10
+    if STRESS_TEST:
+        loop_sleep = 0
+
     # Main loop
     while True:
+        loop_count += 1
+
         t = time.time()
+        if STRESS_TEST:
+            t += loop_count * 60
+
         _, _, _, hour, minute, seconds, _, _, _ = localPTZtime.tztime(
             t, config.POSIX_TZ_STRING
         )
@@ -149,7 +161,7 @@ def main():
         # NTP resync needed?
         if t < last_ntp_sync + 24 * 3600:
             # No
-            time.sleep(10)
+            time.sleep(loop_sleep)
             continue
 
         # Yes
