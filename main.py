@@ -32,63 +32,85 @@ def wifi_pretty_status(status):
     return f"{status}"
 
 
-def wifi_connect():
+def wifi_connect(wlan):
     """
     Connect to wifi using credentials in config.py.
-    Blocks until we are connected.
+    Waits at most 20 seconds for a connection.
     """
 
-    wlan = network.WLAN(network.STA_IF)
+    wlan.active(False)
     wlan.active(True)
+    print(f'Connecting to wifi "{config.WIFI_SSID}"...')
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+    status_pixel(STATUS_CONNECTING)
 
-    while True:
+    retry = 0
+    maxretry = 20
+
+    while retry <= maxretry:
         status = wifi_pretty_status(wlan.status())
-        print(f"Waiting for wifi, status={status}")
-        if wlan.isconnected():
-            break
-        time.sleep(1)
+        print(f"Waiting for wifi {retry}/{maxretry}, status={status}")
 
-    ip = wlan.ifconfig()[0]
-    print(f"Wifi connected, ip={ip}")
+        if wlan.isconnected():
+            ip = wlan.ifconfig()[0]
+            print(f"Wifi connected, ip={ip}")
+            status_pixel(STATUS_HAVE_WIFI)
+            return True
+
+        time.sleep(1)
+        retry += 1
+
+    return False
 
 
 def ntp_sync():
-    while True:
-        print("Initial NTP sync....")
+    retry = 0
+    maxretry = 5
+
+    while retry <= maxretry:
         try:
             ntptime.settime()
-            break
+            print(f"NTP sync ok")
+            status_pixel(STATUS_HAVE_NTP)
+            return True
         except Exception as e:
             print(f"NTP sync failed: {e}")
-            time.sleep(1)
 
-    print(f"NTP sync ok")
+        time.sleep(1)
+        retry += 1
+
+    status_pixel(STATUS_HAVE_WIFI)
+    return False
 
 
-def status_pixel(np, color):
+STATUS_CONNECTING = (10, 0, 0)
+STATUS_HAVE_WIFI = (0, 10, 0)
+STATUS_HAVE_NTP = (0, 0, 0)
+
+
+def status_pixel(color):
     """
     Show boot progress in first pixel
     """
+    global np
     np[0] = color
     np.write()
 
 
-def render_time(np, hour, minute, seconds):
+def render_time(hour, minute, seconds):
     """
     Show the current time as a single dot on the LED strip
     """
+    global np
     np.fill((0, 0, 0))
 
     fractional_day = hour / 24 + minute / 1440 + seconds / 86400
     index = int(math.floor(np.n * fractional_day))
 
-    print(
-        f"Local time: {hour:02}h{minute:02}m{seconds:02}s = {fractional_day:.06}d = pixel #{index+1:3}"
-    )
-
     np[index] = config.DOTCOLOR
     np.write()
+
+    return index
 
 
 def main():
@@ -96,38 +118,46 @@ def main():
     led = machine.Pin("LED", machine.Pin.OUT)
     led.on()
 
+    global np
     np = neopixel.NeoPixel(machine.Pin(config.GPIOPIN), config.PIXELS)
-    status_pixel(np, (10, 0, 0))
+    wlan = network.WLAN(network.STA_IF)
 
-    wifi_connect()
-    status_pixel(np, (0, 10, 0))
+    print("Initial sync...")
+    while True:
+        if wifi_connect(wlan):
+            pass
+        else:
+            continue
 
-    ntp_sync()
-    need_ntp_resync = False
-    status_pixel(np, (0, 0, 10))
+        if ntp_sync():
+            last_ntp_sync = time.time()
+            break
 
+    # Main loop
     while True:
         t = time.time()
         _, _, _, hour, minute, seconds, _, _, _ = localPTZtime.tztime(
             t, config.POSIX_TZ_STRING
         )
 
-        render_time(np, hour, minute, seconds)
+        index = render_time(hour, minute, seconds)
+        wifi_status = wifi_pretty_status(wlan.status())
+        print(
+            f"{hour:02}h{minute:02}m{seconds:02}s = pixel #{index+1:3}, wifi={wifi_status}"
+        )
 
-        # NTP resync every day at 0h
-        if hour == 23:
-            need_ntp_resync = True
-        if hour == 0 and need_ntp_resync:
-            try:
-                ntptime.settime()
-                need_ntp_resync = False
-                print(f"NTP resync ok")
-                status_pixel(np, (0, 0, 0))
-            except Exception as e:
-                print(f"NTP resync failed: {e}")
-                status_pixel(np, (10, 10, 0))
+        # NTP resync needed?
+        if t < last_ntp_sync + 24 * 3600:
+            # No
+            time.sleep(10)
+            continue
 
-        time.sleep(10)
+        # Yes
+        if ntp_sync():
+            last_ntp_sync = t
+        else:
+            # Probably failed due to wifi problems. Try reconnecting.
+            wifi_connect(wlan)
 
 
 if __name__ == "__main__":
