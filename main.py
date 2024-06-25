@@ -70,6 +70,7 @@ def ntp_sync():
     maxretry = 3
 
     while retry <= maxretry:
+        print(f"NTP sync try {retry}/{maxretry}...")
         try:
             t_before = time.time()
             ntptime.settime()
