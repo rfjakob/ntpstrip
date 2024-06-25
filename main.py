@@ -46,7 +46,7 @@ def wifi_connect(wlan):
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
     status_pixel(STATUS_CONNECTING)
 
-    retry = 0
+    retry = 1
     maxretry = 20
 
     while retry <= maxretry:
@@ -66,7 +66,7 @@ def wifi_connect(wlan):
 
 
 def ntp_sync():
-    retry = 0
+    retry = 1
     maxretry = 3
 
     while retry <= maxretry:
