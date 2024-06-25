@@ -91,13 +91,17 @@ STATUS_CONNECTING = (10, 0, 0)
 STATUS_HAVE_WIFI = (0, 10, 0)
 STATUS_HAVE_NTP = (0, 0, 0)
 
+status_pixel_value = (0, 0, 0)
 
-def status_pixel(color):
+def status_pixel(color = None):
     """
     Show boot progress in first pixel
     """
+    global status_pixel_value
+    status_pixel_value = color
+
     global np
-    np[0] = color
+    np[0] = status_pixel_value
     np.write()
 
 
@@ -107,6 +111,9 @@ def render_time(hour, minute, seconds):
     """
     global np
     np.fill((0, 0, 0))
+
+    # The fill() overwrote the status pixel. Restore it.
+    np[0] = status_pixel_value
 
     fractional_day = hour / 24 + minute / 1440 + seconds / 86400
     index = int(math.floor(np.n * fractional_day))
