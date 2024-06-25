@@ -71,8 +71,10 @@ def ntp_sync():
 
     while retry <= maxretry:
         try:
+            t_before = time.time()
             ntptime.settime()
-            print(f"NTP sync ok")
+            offset = t_before - time.time()
+            print(f"NTP sync ok, our clock error was {offset:+}s")
             status_pixel(STATUS_HAVE_NTP)
             return True
         except Exception as e:
@@ -155,7 +157,7 @@ def main():
         index = render_time(hour, minute, seconds)
         wifi_status = wifi_pretty_status(wlan.status())
         print(
-            f"{hour:02}h{minute:02}m{seconds:02}s = pixel #{index+1:3}, wifi={wifi_status}"
+            f"{hour:02}h{minute:02}m{seconds:02}s = pixel #{index+1:3}, wifi={wifi_status}, loop={loop_count}"
         )
 
         # NTP resync needed?
