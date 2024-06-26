@@ -2,10 +2,10 @@
 
 Inspired by [hometime](https://github.com/veebch/hometime),
 and using the
-[same hardware](https://github.com/veebch/hometime/blob/main/README.md#hardware),
+[same hardware](https://github.com/veebch/hometime?tab=readme-ov-file#hardware),
 but much less fancy:
 
-|                                          | [hometime](https://github.com/veebch/hometime) | ntpstrip     |
+|                                          | [hometime](https://github.com/veebch/hometime) | **ntpstrip** |
 |------------------------------------------|------------------------------------------------|--------------|
 | Shows Google Calender events             | ✅                                             | ❌           |
 | Time source                              | https://timeapi.io                             | NTP: pool.ntp.org |
