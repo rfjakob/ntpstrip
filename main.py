@@ -144,6 +144,9 @@ def main():
             last_ntp_sync = time.time()
             break
 
+    # Don't distract from the time display
+    led.off()
+
     loop_count = 0
     loop_sleep = 10
     if config.STRESS_TEST:
