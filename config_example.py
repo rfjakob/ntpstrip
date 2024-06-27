@@ -10,3 +10,6 @@ DOTCOLOR = (0, 10, 10)  # Color of the time dot
 #
 # More info: https://github.com/bellingeri/localPTZtime
 POSIX_TZ_STRING = "CET-1CEST,M3.5.0,M10.5.0/3"
+
+# Set to True to have time run 1000x as fast
+STRESS_TEST = False

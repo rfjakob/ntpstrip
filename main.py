@@ -11,8 +11,6 @@ import localPTZtime
 # Local config
 import config
 
-STRESS_TEST = True
-
 
 def wifi_pretty_status(status):
     """
@@ -94,7 +92,8 @@ STATUS_HAVE_NTP = (0, 0, 0)
 
 status_pixel_value = (0, 0, 0)
 
-def status_pixel(color = None):
+
+def status_pixel(color=None):
     """
     Show boot progress in first pixel
     """
@@ -147,7 +146,7 @@ def main():
 
     loop_count = 0
     loop_sleep = 10
-    if STRESS_TEST:
+    if config.STRESS_TEST:
         loop_sleep = 0
 
     # Main loop
@@ -155,7 +154,7 @@ def main():
         loop_count += 1
 
         t = time.time()
-        if STRESS_TEST:
+        if config.STRESS_TEST:
             t += loop_count * 60
 
         _, _, _, hour, minute, seconds, _, _, _ = localPTZtime.tztime(
