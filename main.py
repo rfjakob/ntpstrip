@@ -11,6 +11,11 @@ import localPTZtime
 # Local config
 import config
 
+class TimeOfDay:
+    def __init__(self, h, m, s):
+        self.h = h
+        self.m = m
+        self.s = s
 
 def wifi_pretty_status(status):
     """
@@ -105,7 +110,7 @@ def status_pixel(color=None):
     np.write()
 
 
-def render_time(hour, minute, seconds):
+def render_time(now):
     """
     Show the current time as a single dot on the LED strip
     """
@@ -115,7 +120,7 @@ def render_time(hour, minute, seconds):
     # The fill() overwrote the status pixel. Restore it.
     np[0] = status_pixel_value
 
-    fractional_day = hour / 24 + minute / 1440 + seconds / 86400
+    fractional_day = now.h / 24 + now.m / 1440 + now.s / 86400
     index = int(math.floor(np.n * fractional_day))
 
     np[index] = config.DOTCOLOR
@@ -164,7 +169,8 @@ def main():
             t, config.POSIX_TZ_STRING
         )
 
-        index = render_time(hour, minute, seconds)
+        now = TimeOfDay(hour, minute, seconds)
+        index = render_time(now)
         wifi_status = wifi_pretty_status(wlan.status())
         print(
             f"{hour:02}h{minute:02}m{seconds:02}s = pixel #{index+1:3}, wifi={wifi_status}, loop={loop_count}"
