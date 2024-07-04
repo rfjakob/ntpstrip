@@ -13,3 +13,5 @@ but much less fancy:
 | Display mode                             | Progress bar                                   | Single dot   |
 | Time range                               | Workday (configurable)                         | Full 24h (fixed)  |
 | Wifi config                              | Temporary access point + webform               | config.py    |
+
+ ![photo of our living room clock](living_room_clock.jpg)
