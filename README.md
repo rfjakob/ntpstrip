@@ -14,4 +14,6 @@ but much less fancy:
 | Time range                               | Workday (configurable)                         | Full 24h (fixed)  |
 | Wifi config                              | Temporary access point + webform               | config.py    |
 
+## Finished Product
+
  ![photo of our living room clock](living_room_clock.jpg)
