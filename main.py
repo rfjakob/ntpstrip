@@ -129,6 +129,16 @@ def render_time(now):
     return index
 
 
+def localTimeOfDay(t: float):
+    """
+    Convert a `time.time()` timestamp to local time
+    """
+    _, _, _, hour, minute, seconds, _, _, _ = localPTZtime.tztime(
+        t, config.POSIX_TZ_STRING
+    )
+    return TimeOfDay(hour, minute, seconds)
+
+
 def main():
     # Onboard LED shows that main.py has started executing
     led = machine.Pin("LED", machine.Pin.OUT)
@@ -165,15 +175,11 @@ def main():
         if config.STRESS_TEST:
             t += loop_count * 60
 
-        _, _, _, hour, minute, seconds, _, _, _ = localPTZtime.tztime(
-            t, config.POSIX_TZ_STRING
-        )
-
-        now = TimeOfDay(hour, minute, seconds)
+        now = localTimeOfDay(t)
         index = render_time(now)
         wifi_status = wifi_pretty_status(wlan.status())
         print(
-            f"{hour:02}h{minute:02}m{seconds:02}s = pixel #{index+1:3}, wifi={wifi_status}, loop={loop_count}"
+            f"{now.h:02}h{now.m:02}m{now.s:02}s = pixel #{index+1:3}, wifi={wifi_status}, loop={loop_count}"
         )
 
         # NTP resync needed?
