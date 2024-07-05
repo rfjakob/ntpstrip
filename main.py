@@ -11,11 +11,15 @@ import localPTZtime
 # Local config
 import config
 
+
 class TimeOfDay:
-    def __init__(self, h, m, s):
+    def __init__(self, h, m, s, utc_offset_h=None):
         self.h = h
         self.m = m
         self.s = s
+        # UTC offset in hours. Example: CEST = +2.
+        self.utc_offset_h = utc_offset_h
+
 
 def wifi_pretty_status(status):
     """
@@ -133,10 +137,22 @@ def localTimeOfDay(t: float):
     """
     Convert a `time.time()` timestamp to local time
     """
-    _, _, _, hour, minute, seconds, _, _, _ = localPTZtime.tztime(
-        t, config.POSIX_TZ_STRING
-    )
-    return TimeOfDay(hour, minute, seconds)
+    (
+        _,
+        _,
+        _,
+        hour,
+        minute,
+        seconds,
+        _,
+        _,
+        _,
+        utc_offset_seconds,
+    ) = localPTZtime._timecalc(t, config.POSIX_TZ_STRING)
+
+    utc_offset_h = int(utc_offset_seconds / 3600)
+
+    return TimeOfDay(hour, minute, seconds, utc_offset_h)
 
 
 def main():
