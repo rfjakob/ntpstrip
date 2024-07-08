@@ -7,13 +7,15 @@ import math
 import machine
 
 import localPTZtime
+import Suntime
 
 # Local config
 import config
 
 
 class TimeOfDay:
-    def __init__(self, h, m, s, utc_offset_h=None):
+    def __init__(self, d=0, h=0, m=0, s=0, utc_offset_h=0):
+        self.d = d
         self.h = h
         self.m = m
         self.s = s
@@ -114,9 +116,22 @@ def status_pixel(color=None):
     np.write()
 
 
-def render_time(now):
+def timeToPixel(now: TimeOfDay) -> int:
+    """
+    Calculate the pixel index [0...config.PIXELS) corresponding
+    to the time.
+    """
+
+    fractional_day = now.h / 24 + now.m / 1440 + now.s / 86400
+    pixel_index = int(math.floor(config.PIXELS * fractional_day))
+
+    return pixel_index
+
+
+def render_time(now: TimeOfDay, sunrise: TimeOfDay, sunset: TimeOfDay):
     """
     Show the current time as a single dot on the LED strip
+    with sunlight hours in the background.
     """
     global np
     np.fill((0, 0, 0))
@@ -124,35 +139,39 @@ def render_time(now):
     # The fill() overwrote the status pixel. Restore it.
     np[0] = status_pixel_value
 
-    fractional_day = now.h / 24 + now.m / 1440 + now.s / 86400
-    index = int(math.floor(np.n * fractional_day))
+    for i in range(timeToPixel(sunrise), timeToPixel(sunset)):
+        np[i] = config.SUN_COLOR
 
-    np[index] = config.DOTCOLOR
+    pixel_index = timeToPixel(now)
+
+    np[pixel_index] = config.DOTCOLOR
     np.write()
 
-    return index
+    return pixel_index
 
 
-def localTimeOfDay(t: float):
+def localTimeOfDay(t: float) -> TimeOfDay:
     """
     Convert a `time.time()` timestamp to local time
     """
+    out = TimeOfDay()
+
     (
         _,
         _,
-        _,
-        hour,
-        minute,
-        seconds,
+        out.d,
+        out.h,
+        out.m,
+        out.s,
         _,
         _,
         _,
         utc_offset_seconds,
     ) = localPTZtime._timecalc(t, config.POSIX_TZ_STRING)
 
-    utc_offset_h = int(utc_offset_seconds / 3600)
+    out.utc_offset_h = int(utc_offset_seconds / 3600)
 
-    return TimeOfDay(hour, minute, seconds, utc_offset_h)
+    return out
 
 
 def main():
@@ -180,6 +199,14 @@ def main():
 
     loop_count = 0
     loop_sleep = 10
+    last_day = 0
+
+    sunrise = TimeOfDay()
+    sunset = TimeOfDay()
+
+    now = localTimeOfDay(time.time())
+    sun = Suntime.Sun(config.LAT, config.LON, now.utc_offset_h)
+
     if config.STRESS_TEST:
         loop_sleep = 0
 
@@ -192,7 +219,15 @@ def main():
             t += loop_count * 60
 
         now = localTimeOfDay(t)
-        index = render_time(now)
+
+        # Update sunrise/sunset on day change
+        if last_day != now.d:
+            print("Day change")
+            _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time()
+            _, _, _, sunset.h, sunset.m = sun.get_sunset_time()
+            last_day = now.d
+
+        index = render_time(now, sunrise, sunset)
         wifi_status = wifi_pretty_status(wlan.status())
         print(
             f"{now.h:02}h{now.m:02}m{now.s:02}s = pixel #{index+1:3}, wifi={wifi_status}, loop={loop_count}"
