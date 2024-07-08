@@ -223,8 +223,8 @@ def main():
         # Update sunrise/sunset on day change
         if last_day != now.d:
             print("Day change")
-            _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time()
-            _, _, _, sunset.h, sunset.m = sun.get_sunset_time()
+            _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time(time.localtime(t))
+            _, _, _, sunset.h, sunset.m = sun.get_sunset_time(time.localtime(t))
             last_day = now.d
 
         index = render_time(now, sunrise, sunset)
