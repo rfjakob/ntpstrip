@@ -216,7 +216,7 @@ def main():
 
         t = time.time()
         if config.STRESS_TEST:
-            t += loop_count * 60
+            t += loop_count * 600
 
         now = localTimeOfDay(t)
 
