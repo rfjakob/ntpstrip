@@ -6,12 +6,29 @@ class SunTimeException(Exception):
     pass
 
 
+class MidnightSunException(SunTimeException):
+    """
+    Sun is always up (24h of daylight)
+    """
+    pass
+
+
+class PolarNightException(SunTimeException):
+    """
+    Sun is always down (0h of daylight)
+    """
+    pass
+
+
 class Sun:
     """
     Original: https://github.com/SatAgro/suntime/blob/master/suntime/suntime.py
 
     Ported to Micropython 20.02.2021: Divergentti / Jari Hiltunen
     Replaced: date utils. Method call use hour difference to UTC as timezone! This will be added to return.
+
+    Updated July 2024 for https://github.com/rfjakob/ntpstrip :
+    * Integrate MidnightSunException, PolarNightException ( https://github.com/SatAgro/suntime/pull/33 )
     """
 
     def __init__(self, lat, lon, tzone):
@@ -29,10 +46,8 @@ class Sun:
 
         date = localtime() if date is None else date
         sr = self._calc_sun_time(date, True)
-        if sr is None:
-            raise SunTimeException('The sun never rises on this location (on the specified date)')
-        else:
-            return sr
+        return sr
+
 
     def get_sunset_time(self, date=None):
         """
@@ -43,10 +58,8 @@ class Sun:
         """
         date = localtime() if date is None else date
         ss = self._calc_sun_time(date, False)
-        if ss is None:
-            raise SunTimeException('The sun never sets on this location (on the specified date)')
-        else:
-            return ss
+        return ss
+
 
     def _calc_sun_time(self, date, isrisetime=True, zenith=90.8):
         """
@@ -106,11 +119,9 @@ class Sun:
                     cosdec * math.cos(to_rad * self._lat))
 
         if cosh > 1:
-            print("always night")
-            return None  # The sun never rises on this location (on the specified date)
+            raise PolarNightException("The sun is always down on this location on the specified date")
         if cosh < -1:
-            print("always day")
-            return None  # The sun never sets on this location (on the specified date)
+            raise MidnightSunException("The sun is always up on this location on the specified date")
 
         # 7b. finish calculating H and convert into hours
 
