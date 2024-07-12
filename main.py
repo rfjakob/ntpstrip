@@ -14,7 +14,9 @@ import config
 
 
 class TimeOfDay:
-    def __init__(self, d=0, h=0, m=0, s=0, utc_offset_h=0):
+    def __init__(self, year=0, month=0, d=0, h=0, m=0, s=0, utc_offset_h=0):
+        self.year = year
+        self.month = month
         self.d = d
         self.h = h
         self.m = m
@@ -157,8 +159,8 @@ def localTimeOfDay(t: float) -> TimeOfDay:
     out = TimeOfDay()
 
     (
-        _,
-        _,
+        out.year,
+        out.month,
         out.d,
         out.h,
         out.m,
@@ -230,7 +232,7 @@ def main():
         index = render_time(now, sunrise, sunset)
         wifi_status = wifi_pretty_status(wlan.status())
         print(
-            f"{now.h:02}h{now.m:02}m{now.s:02}s = pixel #{index+1:3}, wifi={wifi_status}, loop={loop_count}"
+            f"{now.year}-{now.month:02}-{now.d:02} {now.h:02}h{now.m:02}m{now.s:02}s = pixel #{index+1:3} wifi={wifi_status} loop={loop_count} t={t}"
         )
 
         # NTP resync needed?
