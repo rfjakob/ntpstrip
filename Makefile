@@ -1,3 +1,3 @@
 .PHONY: format
 format:
-	black main.py config_example.py 
+	black main.py config_example.py
