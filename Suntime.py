@@ -3,9 +3,7 @@ from utime import localtime
 
 
 class SunTimeException(Exception):
-
-    def __init__(self, message):
-        super(SunTimeException, self).__init__(message)
+    pass
 
 
 class Sun:
@@ -108,8 +106,10 @@ class Sun:
                     cosdec * math.cos(to_rad * self._lat))
 
         if cosh > 1:
+            print("always night")
             return None  # The sun never rises on this location (on the specified date)
         if cosh < -1:
+            print("always day")
             return None  # The sun never sets on this location (on the specified date)
 
         # 7b. finish calculating H and convert into hours
