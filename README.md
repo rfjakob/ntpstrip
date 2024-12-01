@@ -9,7 +9,7 @@ but with much simpler software.
 
 * Raspberry Pi Pico W
 * 5V Addressable LED strip: WS2812B Eco, 1m, 144 LEDs
-* Printout of [dial.svg](docs/dial.svg)
+* Printout of [dial.svg](docs/dial.svg) (print at 1:1 scale or it won't fit!)
 
 ![fritzing schematic](docs/ntpstrip_bb.png)
 
