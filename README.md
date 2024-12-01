@@ -3,7 +3,20 @@
 Inspired by [hometime](https://github.com/veebch/hometime),
 and using the
 [same hardware](https://github.com/veebch/hometime?tab=readme-ov-file#hardware),
-but much less fancy:
+but with much simpler software.
+
+## Hardware
+
+* Raspberry Pi Pico W
+* 5V Addressable LED strip: WS2812B Eco, 1m, 144 LEDs
+
+![fritzing schematic](docs/ntpstrip_bb.png)
+
+## Finished Product
+
+![photo of our living room clock](docs/living_room_clock.jpg)
+
+## Comparison with hometime
 
 |                                          | [hometime](https://github.com/veebch/hometime) | **ntpstrip** |
 |------------------------------------------|------------------------------------------------|--------------|
@@ -13,7 +26,3 @@ but much less fancy:
 | Display mode                             | Progress bar                                   | Single dot   |
 | Time range                               | Workday (configurable)                         | Full 24h (fixed)  |
 | Wifi config                              | Temporary access point + webform               | config.py    |
-
-## Finished Product
-
- ![photo of our living room clock](docs/living_room_clock.jpg)
