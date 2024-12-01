@@ -16,4 +16,4 @@ but much less fancy:
 
 ## Finished Product
 
- ![photo of our living room clock](living_room_clock.jpg)
+ ![photo of our living room clock](docs/living_room_clock.jpg)
