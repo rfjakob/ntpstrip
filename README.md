@@ -1,4 +1,4 @@
-# ntpstrip: display ntp time on a led strip
+# ntpstrip: display internet time and sun hours on a led strip
 
 Inspired by [hometime](https://github.com/veebch/hometime),
 and using the
