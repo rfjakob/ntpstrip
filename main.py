@@ -206,9 +206,6 @@ def main():
     sunrise = TimeOfDay()
     sunset = TimeOfDay()
 
-    now = localTimeOfDay(time.time())
-    sun = Suntime.Sun(config.LAT, config.LON, now.utc_offset_h)
-
     if config.STRESS_TEST:
         loop_sleep = 0
 
@@ -225,6 +222,7 @@ def main():
         # Update sunrise/sunset on day change
         if last_day != now.d:
             print("Day change")
+            sun = Suntime.Sun(config.LAT, config.LON, now.utc_offset_h)
             _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time(time.localtime(t))
             _, _, _, sunset.h, sunset.m = sun.get_sunset_time(time.localtime(t))
             last_day = now.d
