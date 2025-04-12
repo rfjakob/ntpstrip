@@ -138,16 +138,24 @@ def render_time(now: TimeOfDay, sunrise: TimeOfDay, sunset: TimeOfDay):
     global np
     np.fill((0, 0, 0))
 
+    global ascii_art
+    for i in range(len(ascii_art)):
+        ascii_art[i] = 0x5f # Underscore "_"
+
     # The fill() overwrote the status pixel. Restore it.
     np[0] = status_pixel_value
 
     for i in range(timeToPixel(sunrise), timeToPixel(sunset)):
         np[i] = config.SUN_COLOR
+        ascii_art[i] = 0x3d # Equal sign "="
 
     pixel_index = timeToPixel(now)
 
     np[pixel_index] = config.DOTCOLOR
     np.write()
+
+    ascii_art[pixel_index] = 0x58 # Uppercase X
+    print(ascii_art)
 
     return pixel_index
 
@@ -183,6 +191,10 @@ def main():
 
     global np
     np = neopixel.NeoPixel(machine.Pin(config.GPIOPIN), config.PIXELS)
+
+    global ascii_art
+    ascii_art = bytearray(config.PIXELS)
+
     wlan = network.WLAN(network.STA_IF)
 
     print("Initial sync...")
