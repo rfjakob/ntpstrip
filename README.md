@@ -53,8 +53,8 @@ ______________________________________________==========================X=======
 |                                          | [hometime](https://github.com/veebch/hometime) | **ntpstrip** |
 |------------------------------------------|------------------------------------------------|--------------|
 | Shows Google Calender events             | ✅                                             | ❌           |
-| Time source                              | https://timeapi.io                             | NTP: pool.ntp.org |
-| Timezone + DST support                   | https://timeapi.io                             | [localPTZtime](https://github.com/bellingeri/localPTZtime) |
+| Time source                              | Proprietary cloud service: https://timeapi.io  | Standard NTP: pool.ntp.org |
+| Timezone + DST support                   | Proprietary cloud service: https://timeapi.io  | Local calculation using [localPTZtime](https://github.com/bellingeri/localPTZtime) lib |
 | Display mode                             | Progress bar                                   | Single dot   |
 | Time range                               | Workday (configurable)                         | Full 24h (fixed)  |
 | Wifi config                              | Temporary access point + webform               | config.py    |
