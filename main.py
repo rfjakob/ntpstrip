@@ -234,12 +234,12 @@ def main():
 
         now = localTimeOfDay(t)
 
-        # Update sunrise/sunset on day change
-        if last_day != now.d:
-            print("Day change")
+        # Update sunrise/sunset on day change after 4am (wait out DST changes!)
+        if last_day != now.d and now.h >= 4:
             sun = Suntime.Sun(config.LAT, config.LON, now.utc_offset_h)
             _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time(time.localtime(t))
             _, _, _, sunset.h, sunset.m = sun.get_sunset_time(time.localtime(t))
+            print(f"Recalculated sunrise={sunrise.h:02}:{sunrise.m:02} sunset={sunset.h:02}:{sunset.m:02} local time")
             last_day = now.d
 
         index = render_time(now, sunrise, sunset)
