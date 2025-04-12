@@ -198,12 +198,6 @@ def main():
     led = machine.Pin("LED", machine.Pin.OUT)
     led.on()
 
-    global np
-    np = neopixel.NeoPixel(machine.Pin(config.GPIOPIN), config.PIXELS)
-
-    global ascii_art
-    ascii_art = bytearray(config.PIXELS)
-
     wlan = network.WLAN(network.STA_IF)
 
     print("Initial sync...")
@@ -267,6 +261,9 @@ def main():
             # Probably failed due to wifi problems. Try reconnecting.
             wifi_connect(wlan)
 
+# Globals defined here so ascii_year.py can easily call main.render_time()
+ascii_art = bytearray(config.PIXELS)
+np = neopixel.NeoPixel(machine.Pin(config.GPIOPIN), config.PIXELS)
 
 if __name__ == "__main__":
     main()
