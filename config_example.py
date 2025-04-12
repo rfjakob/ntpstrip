@@ -23,3 +23,10 @@ SUN_COLOR = (1, 1, 0)
 
 # Set to True to have time run 1000x as fast
 STRESS_TEST = False
+
+# Flip LED order
+# False -> 00:00 is at the led closest to the microcontroler.
+#          Use this if the clock is mounted like this: [Microcontroller][------------LED strip------------]
+# True  -> 23:59 is at the led closest to the microcontroler
+#          Use this if the clock is mounted like this: [------------LED strip------------][Microcontroller]
+FLIP = False

@@ -114,9 +114,18 @@ def status_pixel(color=None):
     status_pixel_value = color
 
     global np
-    np[0] = status_pixel_value
+    np[flip_index(0)] = status_pixel_value
     np.write()
 
+
+def flip_index(index):
+    """
+    If config.FLIP is set, flip left and right by reversing
+    the led index order.
+    """
+    if not config.FLIP:
+        return index
+    return config.PIXELS-index-1
 
 def timeToPixel(now: TimeOfDay) -> int:
     """
@@ -143,21 +152,21 @@ def render_time(now: TimeOfDay, sunrise: TimeOfDay, sunset: TimeOfDay):
         ascii_art[i] = 0x5f # Underscore "_"
 
     # The fill() overwrote the status pixel. Restore it.
-    np[0] = status_pixel_value
+    global status_pixel_value
+    np[flip_index(0)] = status_pixel_value
 
     for i in range(timeToPixel(sunrise), timeToPixel(sunset)):
-        np[i] = config.SUN_COLOR
-        ascii_art[i] = 0x3d # Equal sign "="
+        np[flip_index(i)] = config.SUN_COLOR
+        ascii_art[flip_index(i)] = 0x3d # Equal sign "="
 
-    pixel_index = timeToPixel(now)
-
-    np[pixel_index] = config.DOTCOLOR
+    index_now = flip_index(timeToPixel(now))
+    np[index_now] = config.DOTCOLOR
     np.write()
 
-    ascii_art[pixel_index] = 0x58 # Uppercase X
+    ascii_art[index_now] = 0x58 # Uppercase X
     print(ascii_art)
 
-    return pixel_index
+    return index_now
 
 
 def localTimeOfDay(t: float) -> TimeOfDay:
