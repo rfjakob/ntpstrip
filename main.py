@@ -125,7 +125,8 @@ def flip_index(index):
     """
     if not config.FLIP:
         return index
-    return config.PIXELS-index-1
+    return config.PIXELS - index - 1
+
 
 def timeToPixel(now: TimeOfDay) -> int:
     """
@@ -149,7 +150,7 @@ def render_time(now: TimeOfDay, sunrise: TimeOfDay, sunset: TimeOfDay):
 
     global ascii_art
     for i in range(len(ascii_art)):
-        ascii_art[i] = 0x5f # Underscore "_"
+        ascii_art[i] = 0x5F  # Underscore "_"
 
     # The fill() overwrote the status pixel. Restore it.
     global status_pixel_value
@@ -166,13 +167,13 @@ def render_time(now: TimeOfDay, sunrise: TimeOfDay, sunset: TimeOfDay):
 
     for i in sun_pixels:
         np[flip_index(i)] = config.SUN_COLOR
-        ascii_art[flip_index(i)] = 0x3d # Equal sign "="
+        ascii_art[flip_index(i)] = 0x3D  # Equal sign "="
 
     index_now = flip_index(timeToPixel(now))
     np[index_now] = config.DOTCOLOR
     np.write()
 
-    ascii_art[index_now] = 0x58 # Uppercase X
+    ascii_art[index_now] = 0x58  # Uppercase X
     print(ascii_art)
 
     return index_now
@@ -268,7 +269,9 @@ def main():
         # and immediately after boot.
         if not have_sun or (last_day != now.d and now.h >= 4):
             sunrise, sunset = sun_times(now)
-            print(f"Recalculated sunrise={sunrise.h:02}:{sunrise.m:02} sunset={sunset.h:02}:{sunset.m:02} local time")
+            print(
+                f"Recalculated sunrise={sunrise.h:02}:{sunrise.m:02} sunset={sunset.h:02}:{sunset.m:02} local time"
+            )
             have_sun = True
             # Booted before 4am? Calculate again at 4am in case DST changed.
             last_day = now.d if now.h >= 4 else 0
@@ -290,6 +293,7 @@ def main():
                 next_ntp_sync = t + 600
 
         time.sleep(loop_sleep)
+
 
 # Globals defined here so ascii_year.py can easily call main.render_time()
 ascii_art = bytearray(config.PIXELS)
