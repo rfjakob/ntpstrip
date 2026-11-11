@@ -139,13 +139,12 @@ class Sun:
         ut = t - lnghour
         ut = self._force_range(ut, 24)  # UTC time in decimal format (e.g. 23.23)
 
-        # 10. Return
-        hr = self._force_range(int(ut), 24)
-        minutes = round((ut - int(ut)) * 60, 0)
-        if minutes == 60:
-            hr += 1
-            minutes = 0
-        return year, month, day, hr + self._tzone, int(minutes)
+        # 10. Convert to local time. Work in whole minutes so that fractional
+        # timezones (+5.5, +5.75) and rounding up to 60 minutes are handled,
+        # and wrap into [00:00, 24:00) as the local time may be on the
+        # previous or next UTC day.
+        total_minutes = int(round((ut + self._tzone) * 60)) % 1440
+        return year, month, day, total_minutes // 60, total_minutes % 60
 
     @staticmethod
     def _force_range(v, maximum):

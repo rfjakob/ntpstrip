@@ -21,7 +21,7 @@ class TimeOfDay:
         self.h = h
         self.m = m
         self.s = s
-        # UTC offset in hours. Example: CEST = +2.
+        # UTC offset in hours. Example: CEST = +2, IST = +5.5.
         self.utc_offset_h = utc_offset_h
 
 
@@ -130,7 +130,7 @@ def flip_index(index):
 def timeToPixel(now: TimeOfDay) -> int:
     """
     Calculate the pixel index [0...config.PIXELS) corresponding
-    to the time.
+    to the time. 24:00 maps to config.PIXELS (one past the end).
     """
 
     fractional_day = now.h / 24 + now.m / 1440 + now.s / 86400
@@ -155,7 +155,16 @@ def render_time(now: TimeOfDay, sunrise: TimeOfDay, sunset: TimeOfDay):
     global status_pixel_value
     np[flip_index(0)] = status_pixel_value
 
-    for i in range(timeToPixel(sunrise), timeToPixel(sunset)):
+    sunrise_px = timeToPixel(sunrise)
+    sunset_px = timeToPixel(sunset)
+    if sunrise_px <= sunset_px:
+        sun_pixels = range(sunrise_px, sunset_px)
+    else:
+        # Sunset is after local midnight (can happen far from the
+        # timezone's reference meridian)
+        sun_pixels = list(range(sunrise_px, config.PIXELS)) + list(range(sunset_px))
+
+    for i in sun_pixels:
         np[flip_index(i)] = config.SUN_COLOR
         ascii_art[flip_index(i)] = 0x3d # Equal sign "="
 
@@ -188,9 +197,31 @@ def localTimeOfDay(t: float) -> TimeOfDay:
         utc_offset_seconds,
     ) = localPTZtime._timecalc(t, config.POSIX_TZ_STRING)
 
-    out.utc_offset_h = int(utc_offset_seconds / 3600)
+    out.utc_offset_h = utc_offset_seconds / 3600
 
     return out
+
+
+def sun_times(now: TimeOfDay):
+    """
+    Calculate local sunrise and sunset for the day of `now`.
+    Returns (sunrise, sunset) as TimeOfDay. Midnight sun is
+    returned as 00:00-24:00, polar night as 00:00-00:00.
+    """
+    sun = Suntime.Sun(config.LAT, config.LON, now.utc_offset_h)
+    date = (now.year, now.month, now.d)
+    sunrise = TimeOfDay()
+    sunset = TimeOfDay()
+    try:
+        _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time(date)
+        _, _, _, sunset.h, sunset.m = sun.get_sunset_time(date)
+    except Suntime.MidnightSunException:
+        sunrise = TimeOfDay(h=0)
+        sunset = TimeOfDay(h=24)
+    except Suntime.PolarNightException:
+        sunrise = TimeOfDay()
+        sunset = TimeOfDay()
+    return sunrise, sunset
 
 
 def main():
@@ -217,9 +248,8 @@ def main():
     loop_count = 0
     loop_sleep = 10
     last_day = 0
-
-    sunrise = TimeOfDay()
-    sunset = TimeOfDay()
+    have_sun = False
+    next_ntp_sync = last_ntp_sync + 24 * 3600
 
     if config.STRESS_TEST:
         loop_sleep = 0
@@ -234,13 +264,14 @@ def main():
 
         now = localTimeOfDay(t)
 
-        # Update sunrise/sunset on day change after 4am (wait out DST changes!)
-        if last_day != now.d and now.h >= 4:
-            sun = Suntime.Sun(config.LAT, config.LON, now.utc_offset_h)
-            _, _, _, sunrise.h, sunrise.m = sun.get_sunrise_time(time.localtime(t))
-            _, _, _, sunset.h, sunset.m = sun.get_sunset_time(time.localtime(t))
+        # Update sunrise/sunset on day change after 4am (wait out DST changes!),
+        # and immediately after boot.
+        if not have_sun or (last_day != now.d and now.h >= 4):
+            sunrise, sunset = sun_times(now)
             print(f"Recalculated sunrise={sunrise.h:02}:{sunrise.m:02} sunset={sunset.h:02}:{sunset.m:02} local time")
-            last_day = now.d
+            have_sun = True
+            # Booted before 4am? Calculate again at 4am in case DST changed.
+            last_day = now.d if now.h >= 4 else 0
 
         index = render_time(now, sunrise, sunset)
         wifi_status = wifi_pretty_status(wlan.status())
@@ -249,17 +280,16 @@ def main():
         )
 
         # NTP resync needed?
-        if t < last_ntp_sync + 24 * 3600:
-            # No
-            time.sleep(loop_sleep)
-            continue
+        if t >= next_ntp_sync:
+            if ntp_sync():
+                next_ntp_sync = t + 24 * 3600
+            else:
+                # Probably failed due to wifi problems. Try reconnecting,
+                # and retry in 10 minutes.
+                wifi_connect(wlan)
+                next_ntp_sync = t + 600
 
-        # Yes
-        if ntp_sync():
-            last_ntp_sync = t
-        else:
-            # Probably failed due to wifi problems. Try reconnecting.
-            wifi_connect(wlan)
+        time.sleep(loop_sleep)
 
 # Globals defined here so ascii_year.py can easily call main.render_time()
 ascii_art = bytearray(config.PIXELS)

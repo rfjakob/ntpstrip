@@ -156,7 +156,9 @@ def _timecalc(timestamp: float, ptz_string: str):
 		std_offset_seconds = - _hours2secs(offsetHours[0])
 
 		if (len(offsetHours)>1):
-			dst_offset_seconds = _hours2secs(offsetHours[1])
+			# The dst offset is absolute (like the std offset), not relative to std.
+			# Convert to the delta that is added to std_offset_seconds below.
+			dst_offset_seconds = - _hours2secs(offsetHours[1]) - std_offset_seconds
 		else:
 			dst_offset_seconds = 3600
 
